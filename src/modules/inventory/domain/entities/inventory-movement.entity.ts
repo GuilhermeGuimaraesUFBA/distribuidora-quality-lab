@@ -73,7 +73,15 @@ export class InventoryMovement extends DomainEntity {
   private static validateProductId(productId: string): void {
     if (!productId || productId.trim().length === 0) {
       throw new ValidationException('Product ID is required', {
-        productId: ['productId must be a valid UUID'],
+        productId: ['productId cannot be empty'],
+      });
+    }
+
+    const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    
+    if (!uuidV4Regex.test(productId)) {
+      throw new ValidationException('Invalid Product ID format', {
+        productId: ['productId must be a valid UUID v4 format'],
       });
     }
   }

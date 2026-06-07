@@ -56,6 +56,37 @@ describe('InventoryMovement', () => {
         InventoryMovement.create({ ...validEntryProps, productId: '   ' }),
       ).toThrow(ValidationException);
     });
+
+    // testes novos para a funcionalidade de uuidv4
+
+    it('when productId has invalid string format, then throws ValidationException', () => {
+      expect(() =>
+        InventoryMovement.create({ ...validEntryProps, productId: 'invalid-id-123' }),
+      ).toThrow(ValidationException);
+    });
+
+    // formato correto mas com caracteres fora do hex
+    it('when productId contains non-hex characters, then throws ValidationException', () => {
+      expect(() =>
+        InventoryMovement.create({ ...validEntryProps, productId: 'gggggggg-gggg-4ggg-aggg-gggggggggggg' }),
+      ).toThrow(ValidationException);
+    });
+
+    // uuidv4 valido
+    it('when productId is a valid UUID v4, then does not throw', () => {
+      const validUuid = '550e8400-e29b-4d4c-a716-446655440000';
+      expect(() =>
+        InventoryMovement.create({ ...validEntryProps, productId: validUuid }),
+      ).not.toThrow();
+    });
+
+    it('when productId is a valid UUID but not v4, then throws ValidationException', () => {
+      const uuidV1 = 'd9428888-122b-11e1-b85c-61cd3cbb3210'; // uuid versão 1 (falha)
+      
+      expect(() =>
+        InventoryMovement.create({ ...validEntryProps, productId: uuidV1 }),
+      ).toThrow(ValidationException);
+    });
   });
 
   describe('type validation', () => {
