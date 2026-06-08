@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
 export class CreateAcceptanceRulesTable1700000000007 implements MigrationInterface {
-  name = '007-create-acceptance-rules-table';
+  name = 'CreateAcceptanceRulesTable1700000000007';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(

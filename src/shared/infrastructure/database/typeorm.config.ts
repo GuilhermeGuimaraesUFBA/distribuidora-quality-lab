@@ -7,8 +7,9 @@ export const dataSourceOptions: DataSourceOptions = {
   migrationsRun: true,
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   entities: [
-    __dirname + '/../../**/*.aggregate{.ts,.js}',
-    __dirname + '/../../**/*.entity{.ts,.js}',
+    __dirname + '/../../../modules/**/*.aggregate{.ts,.js}',
+    __dirname + '/../../../modules/**/*.entity{.ts,.js}',
+    __dirname + '/../../../modules/payment-type/domain/value-objects/acceptance-rule.vo{.ts,.js}',
   ],
   logging: process.env.NODE_ENV === 'development' ? ['error', 'migration'] : ['error'],
 };

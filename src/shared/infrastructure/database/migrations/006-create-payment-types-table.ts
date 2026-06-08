@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class CreatePaymentTypesTable1700000000006 implements MigrationInterface {
-  name = '006-create-payment-types-table';
+  name = 'CreatePaymentTypesTable1700000000006';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(

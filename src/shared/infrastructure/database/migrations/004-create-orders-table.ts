@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
 export class CreateOrdersTable1700000000004 implements MigrationInterface {
-  name = '004-create-orders-table';
+  name = 'CreateOrdersTable1700000000004';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
