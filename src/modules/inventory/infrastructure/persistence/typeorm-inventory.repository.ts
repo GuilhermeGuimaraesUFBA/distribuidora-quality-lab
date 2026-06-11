@@ -3,25 +3,28 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeOrmRepo } from 'typeorm';
 import { InventoryMovement } from '../../domain/entities/inventory-movement.entity';
 import { InventoryRepository } from '../../domain/repositories/inventory.repository';
+import { TypeOrmInventoryMovementEntity } from './typeorm-inventory-movement.entity';
 
 @Injectable()
 export class TypeOrmInventoryRepository implements InventoryRepository {
   constructor(
-    @InjectRepository(InventoryMovement)
-    private readonly ormRepository: TypeOrmRepo<InventoryMovement>,
+    @InjectRepository(TypeOrmInventoryMovementEntity)
+    private readonly ormRepository: TypeOrmRepo<TypeOrmInventoryMovementEntity>,
   ) {}
 
   async findMovementsByProductId(productId: string): Promise<InventoryMovement[]> {
-    return this.ormRepository.find({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where: { _productId: productId } as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      order: { _createdAt: 'ASC' } as any,
+    const movements = await this.ormRepository.find({
+      where: { productId },
+      order: { createdAt: 'ASC' },
     });
+
+    return movements.map((movement) => this.toDomain(movement));
   }
 
   async save(movement: InventoryMovement): Promise<InventoryMovement> {
-    return this.ormRepository.save(movement);
+    const saved = await this.ormRepository.save(this.toPersistence(movement));
+
+    return this.toDomain(saved);
   }
 
   async getBalance(productId: string): Promise<number> {
@@ -37,5 +40,35 @@ export class TypeOrmInventoryRepository implements InventoryRepository {
     }
 
     return balance;
+  }
+
+  private toDomain(entity: TypeOrmInventoryMovementEntity): InventoryMovement {
+    return InventoryMovement.restore({
+      id: entity.id,
+      productId: entity.productId,
+      type: entity.type as 'entry' | 'withdrawal',
+      quantity: entity.quantity,
+      reason: entity.reason,
+      createdAt: entity.createdAt,
+    });
+  }
+
+  private toPersistence(movement: InventoryMovement): TypeOrmInventoryMovementEntity {
+    const entity = new TypeOrmInventoryMovementEntity();
+
+    if (movement.id) {
+      entity.id = movement.id;
+    }
+
+    entity.productId = movement.productId;
+    entity.type = movement.type;
+    entity.quantity = movement.quantity;
+    entity.reason = movement.reason;
+
+    if (movement.createdAt) {
+      entity.createdAt = movement.createdAt;
+    }
+
+    return entity;
   }
 }

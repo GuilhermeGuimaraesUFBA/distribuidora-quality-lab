@@ -1,4 +1,3 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 import { Entity as DomainEntity } from '@shared/domain/entity';
 import { ValidationException } from '@shared/domain/exceptions';
 
@@ -11,24 +10,26 @@ interface CreateMovementProps {
   reason?: string;
 }
 
-@Entity('inventory_movements')
+interface RestoreMovementProps {
+  id: string;
+  productId: string;
+  type: MovementType;
+  quantity: number;
+  reason: string | null;
+  createdAt: Date;
+}
+
 export class InventoryMovement extends DomainEntity {
-  @PrimaryGeneratedColumn('uuid')
   private _id: string;
 
-  @Column({ name: 'product_id', type: 'uuid' })
   private _productId: string;
 
-  @Column({ length: 10 })
   private _type: string;
 
-  @Column({ type: 'integer' })
   private _quantity: number;
 
-  @Column({ length: 255, nullable: true })
   private _reason: string | null;
 
-  @CreateDateColumn({ name: 'created_at' })
   private _createdAt: Date;
 
   get id(): string {
@@ -70,6 +71,33 @@ export class InventoryMovement extends DomainEntity {
     return movement;
   }
 
+  static restore(props: RestoreMovementProps): InventoryMovement {
+    InventoryMovement.validateIdentity(props.id);
+    InventoryMovement.validateProductId(props.productId);
+    InventoryMovement.validateType(props.type);
+    InventoryMovement.validateQuantity(props.quantity);
+    InventoryMovement.validateReason(props.type, props.reason ?? undefined);
+    InventoryMovement.validateCreatedAt(props.createdAt);
+
+    const movement = new InventoryMovement();
+    movement._id = props.id;
+    movement._productId = props.productId;
+    movement._type = props.type;
+    movement._quantity = props.quantity;
+    movement._reason = props.reason;
+    movement._createdAt = props.createdAt;
+
+    return movement;
+  }
+
+  private static validateIdentity(id: string): void {
+    if (!id || id.trim().length === 0) {
+      throw new ValidationException('Movement ID is required', {
+        id: ['id must be a valid UUID'],
+      });
+    }
+  }
+
   private static validateProductId(productId: string): void {
     if (!productId || productId.trim().length === 0) {
       throw new ValidationException('Product ID is required', {
@@ -98,6 +126,14 @@ export class InventoryMovement extends DomainEntity {
     if (type === 'withdrawal' && (!reason || reason.trim().length === 0)) {
       throw new ValidationException('Reason is required for withdrawals', {
         reason: ['reason is required when type is "withdrawal"'],
+      });
+    }
+  }
+
+  private static validateCreatedAt(createdAt: Date): void {
+    if (!(createdAt instanceof Date) || Number.isNaN(createdAt.getTime())) {
+      throw new ValidationException('Movement creation date is invalid', {
+        createdAt: ['createdAt must be a valid Date'],
       });
     }
   }

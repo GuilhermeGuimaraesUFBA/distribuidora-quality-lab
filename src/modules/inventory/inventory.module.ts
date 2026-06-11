@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { InventoryMovement } from './domain/entities/inventory-movement.entity';
 import { INVENTORY_REPOSITORY } from './domain/repositories/inventory.repository';
+import { TypeOrmInventoryMovementEntity } from './infrastructure/persistence/typeorm-inventory-movement.entity';
 import { TypeOrmInventoryRepository } from './infrastructure/persistence/typeorm-inventory.repository';
 import { RegisterEntryUseCase } from './application/use-cases/register-entry.use-case';
 import { RegisterWithdrawalUseCase } from './application/use-cases/register-withdrawal.use-case';
@@ -11,7 +11,7 @@ import { InventoryController } from './interface/controllers/inventory.controlle
 import { ProductModule } from '../product/product.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([InventoryMovement]), ProductModule],
+  imports: [TypeOrmModule.forFeature([TypeOrmInventoryMovementEntity]), ProductModule],
   controllers: [InventoryController],
   providers: [
     {

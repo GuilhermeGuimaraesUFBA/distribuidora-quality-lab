@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { InventoryMovement } from '@modules/inventory/domain/entities/inventory-movement.entity';
 import { ValidationException } from '@shared/domain/exceptions/validation.exception';
 
@@ -41,6 +43,59 @@ describe('InventoryMovement', () => {
       });
 
       expect(movement.reason).toBe('Compra de fornecedor');
+    });
+  });
+
+  describe('clean architecture boundary', () => {
+    it('keeps TypeORM annotations out of the domain entity', () => {
+      const source = readFileSync(
+        resolve(
+          __dirname,
+          '../../../src/modules/inventory/domain/entities/inventory-movement.entity.ts',
+        ),
+        'utf8',
+      );
+
+      expect(source).not.toContain("from 'typeorm'");
+      expect(source).not.toContain('@Entity');
+      expect(source).not.toContain('@Column');
+      expect(source).not.toContain('@PrimaryGeneratedColumn');
+      expect(source).not.toContain('@CreateDateColumn');
+    });
+  });
+
+  describe('restore', () => {
+    it('when persistence data is valid, then restores movement through domain invariants', () => {
+      const createdAt = new Date('2024-01-15T10:00:00.000Z');
+
+      const movement = InventoryMovement.restore({
+        id: '660e8400-e29b-41d4-a716-446655440000',
+        productId: validWithdrawalProps.productId,
+        type: 'withdrawal',
+        quantity: 2,
+        reason: 'Venda para cliente',
+        createdAt,
+      });
+
+      expect(movement.id).toBe('660e8400-e29b-41d4-a716-446655440000');
+      expect(movement.productId).toBe(validWithdrawalProps.productId);
+      expect(movement.type).toBe('withdrawal');
+      expect(movement.quantity).toBe(2);
+      expect(movement.reason).toBe('Venda para cliente');
+      expect(movement.createdAt).toBe(createdAt);
+    });
+
+    it('when persisted withdrawal has no reason, then rejects invalid domain state', () => {
+      expect(() =>
+        InventoryMovement.restore({
+          id: '660e8400-e29b-41d4-a716-446655440000',
+          productId: validWithdrawalProps.productId,
+          type: 'withdrawal',
+          quantity: 2,
+          reason: null,
+          createdAt: new Date('2024-01-15T10:00:00.000Z'),
+        }),
+      ).toThrow(ValidationException);
     });
   });
 
