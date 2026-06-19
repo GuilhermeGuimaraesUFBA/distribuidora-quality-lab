@@ -38,6 +38,7 @@ describe('RegisterEntryUseCase — Coverage', () => {
       productRepository.findById.mockResolvedValue({
         id: '550e8400-e29b-41d4-a716-446655440000',
       });
+      inventoryRepository.getBalance.mockResolvedValue(0);
       inventoryRepository.save.mockImplementation((movement) => {
         Object.defineProperty(movement, '_id', { value: 'uuid-1', writable: true });
         Object.defineProperty(movement, '_createdAt', { value: new Date(), writable: true });
@@ -56,6 +57,7 @@ describe('RegisterEntryUseCase — Coverage', () => {
       productRepository.findById.mockResolvedValue({
         id: '550e8400-e29b-41d4-a716-446655440000',
       });
+      inventoryRepository.getBalance.mockResolvedValue(0);
       inventoryRepository.save.mockImplementation((movement) => {
         Object.defineProperty(movement, '_id', { value: 'uuid-2', writable: true });
         Object.defineProperty(movement, '_createdAt', { value: new Date(), writable: true });
@@ -74,6 +76,7 @@ describe('RegisterEntryUseCase — Coverage', () => {
       productRepository.findById.mockResolvedValue({
         id: '660e8400-e29b-41d4-a716-446655440000',
       });
+      inventoryRepository.getBalance.mockResolvedValue(0);
       inventoryRepository.save.mockImplementation((movement) => {
         Object.defineProperty(movement, '_id', { value: 'uuid-3', writable: true });
         Object.defineProperty(movement, '_createdAt', { value: new Date(), writable: true });

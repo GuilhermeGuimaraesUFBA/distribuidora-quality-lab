@@ -1,6 +1,5 @@
 import { RegisterEntryUseCase } from '@modules/inventory/application/use-cases/register-entry.use-case';
-import { NotFoundException } from '@shared/domain/exceptions';
-import { ValidationException } from '@shared/domain/exceptions';
+import { NotFoundException, BusinessRuleException, ValidationException } from '@shared/domain/exceptions';
 
 describe('RegisterEntryUseCase', () => {
   let useCase: RegisterEntryUseCase;
@@ -43,6 +42,7 @@ describe('RegisterEntryUseCase', () => {
 
     it('when product exists and quantity is valid, then registers entry movement', async () => {
       productRepository.findById.mockResolvedValue({ id: validInput.productId });
+      inventoryRepository.getBalance.mockResolvedValue(0);
       inventoryRepository.save.mockImplementation((movement) => {
         Object.defineProperty(movement, '_id', { value: 'generated-uuid', writable: true });
         Object.defineProperty(movement, '_createdAt', { value: new Date('2024-01-15'), writable: true });
@@ -63,20 +63,22 @@ describe('RegisterEntryUseCase', () => {
       await expect(useCase.execute(validInput)).rejects.toThrow(NotFoundException);
     });
 
-    it('when quantity is zero, then throws ValidationException', async () => {
+    it('when quantity is zero, then throws BusinessRuleException', async () => {
       productRepository.findById.mockResolvedValue({ id: validInput.productId });
+      inventoryRepository.getBalance.mockResolvedValue(0);
 
       await expect(
         useCase.execute({ ...validInput, quantity: 0 }),
-      ).rejects.toThrow(ValidationException);
+      ).rejects.toThrow(BusinessRuleException);
     });
 
-    it('when quantity is negative, then throws ValidationException', async () => {
+    it('when quantity is negative, then throws BusinessRuleException', async () => {
       productRepository.findById.mockResolvedValue({ id: validInput.productId });
+      inventoryRepository.getBalance.mockResolvedValue(0);
 
       await expect(
         useCase.execute({ ...validInput, quantity: -5 }),
-      ).rejects.toThrow(ValidationException);
+      ).rejects.toThrow(BusinessRuleException);
     });
   });
 });
