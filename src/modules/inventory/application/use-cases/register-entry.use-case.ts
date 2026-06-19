@@ -1,10 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { InventoryMovement } from '../../domain/entities/inventory-movement.entity';
 import {
   InventoryRepository,
   INVENTORY_REPOSITORY,
 } from '../../domain/repositories/inventory.repository';
 import { ProductRepository } from '../../../product/domain/repositories/product.repository';
+import { ProductInventory } from '../../domain/aggregates/product-inventory.aggregate';
 import { NotFoundException } from '@shared/domain/exceptions';
 
 export interface RegisterEntryInput {
@@ -36,11 +36,10 @@ export class RegisterEntryUseCase {
       throw new NotFoundException(`Product with id ${input.productId} not found`);
     }
 
-    const movement = InventoryMovement.create({
-      productId: input.productId,
-      type: 'entry',
-      quantity: input.quantity,
-    });
+    const currentBalance = await this.inventoryRepository.getBalance(input.productId);
+    const inventory = ProductInventory.load(input.productId, currentBalance);
+
+    const movement = inventory.addEntry(input.quantity);
 
     const saved = await this.inventoryRepository.save(movement);
 

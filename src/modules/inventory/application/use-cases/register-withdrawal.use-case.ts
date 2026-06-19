@@ -1,11 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { InventoryMovement } from '../../domain/entities/inventory-movement.entity';
 import {
   InventoryRepository,
   INVENTORY_REPOSITORY,
 } from '../../domain/repositories/inventory.repository';
 import { ProductRepository } from '../../../product/domain/repositories/product.repository';
-import { StockBalance } from '../../domain/value-objects/stock-balance.vo';
+import { ProductInventory } from '../../domain/aggregates/product-inventory.aggregate';
 import { NotFoundException } from '@shared/domain/exceptions';
 
 export interface RegisterWithdrawalInput {
@@ -40,23 +39,13 @@ export class RegisterWithdrawalUseCase {
     }
 
     const currentBalance = await this.inventoryRepository.getBalance(input.productId);
-    const balance = StockBalance.create(currentBalance);
+    const inventory = ProductInventory.load(input.productId, currentBalance);
 
-    // Domain rule: reject withdrawal if insufficient stock
-    // This throws BusinessRuleException with details if quantity > available
-    const newBalance = balance.subtract(input.quantity);
-
-    const movement = InventoryMovement.create({
-      productId: input.productId,
-      type: 'withdrawal',
-      quantity: input.quantity,
-      reason: input.reason,
-    });
+    const movement = inventory.withdraw(input.quantity, input.reason);
 
     const saved = await this.inventoryRepository.save(movement);
 
-    // Req 3.6: If balance reaches zero after withdrawal, mark product as unavailable
-    if (newBalance.isZero) {
+    if (inventory.balance.isZero) {
       product.markAsUnavailable();
       await this.productRepository.save(product);
     }
