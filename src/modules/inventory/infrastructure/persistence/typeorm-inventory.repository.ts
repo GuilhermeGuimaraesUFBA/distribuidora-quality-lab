@@ -28,18 +28,16 @@ export class TypeOrmInventoryRepository implements InventoryRepository {
   }
 
   async getBalance(productId: string): Promise<number> {
-    const movements = await this.findMovementsByProductId(productId);
+    const result = await this.ormRepository
+      .createQueryBuilder('m')
+      .select(
+        `COALESCE(SUM(CASE WHEN m.type = 'entry' THEN m.quantity ELSE -m.quantity END), 0)`,
+        'balance',
+      )
+      .where('m.productId = :productId', { productId })
+      .getRawOne<{ balance: string }>();
 
-    let balance = 0;
-    for (const movement of movements) {
-      if (movement.type === 'entry') {
-        balance += movement.quantity;
-      } else {
-        balance -= movement.quantity;
-      }
-    }
-
-    return balance;
+  return Number(result?.balance ?? 0);
   }
 
   private toDomain(entity: TypeOrmInventoryMovementEntity): InventoryMovement {

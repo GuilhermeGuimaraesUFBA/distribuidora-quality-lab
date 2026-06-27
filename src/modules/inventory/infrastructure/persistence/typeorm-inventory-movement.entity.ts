@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -10,6 +11,7 @@ export class TypeOrmInventoryMovementEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index('idx_inventory_movements_product_id')
   @Column({ name: 'product_id', type: 'uuid' })
   productId: string;
 
