@@ -3,8 +3,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from '@shared/infrastructure/filters/global-exception.filter';
+import { setupTracing } from '@shared/observability/tracing/otel-setup';
 
 async function bootstrap() {
+  setupTracing();
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalFilters(new GlobalExceptionFilter());
