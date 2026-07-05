@@ -134,14 +134,21 @@ Resumo esperado para a entrega:
 
 ## Texto sugerido para descricao do Pull Request
 
-- O que foi melhorado:
-	- refatoracao do modulo de estoque para concentrar regra no agregado de dominio;
-	- endurecimento dos gates de qualidade no CI;
-	- ativacao de tracing no bootstrap;
-	- atualizacao de dependencias com foco em seguranca.
-- Problema de qualidade atacado:
-	- anemic domain model e regra de negocio espalhada, com impacto em manutencao e risco de inconsistencia.
-- Testes/evidencias:
-	- execucao de build, lint, testes (unit/property/integration/coverage) e auditoria de seguranca.
-- Impacto esperado:
-	- maior confiabilidade para evolucao, operacao e manutencao do sistema.
+Nesta entrega, o foco foi consolidar a qualidade do modulo de estoque com base em evidencias tecnicas, e nao apenas em funcionamento superficial.
+
+O principal problema atacado foi a regra de negocio espalhada entre casos de uso (anemic domain model), que aumentava risco de inconsistencias e dificultava manutencao. A refatoracao centralizou as invariantes no agregado `ProductInventory`, deixando os casos de uso mais simples e previsiveis.
+
+Tambem reforcamos o aspecto operacional da entrega:
+
+- gates de CI mais rigidos (lint, cobertura minima com falha real e auditoria de seguranca sem bypass);
+- tracing ativado no bootstrap para melhorar rastreabilidade;
+- atualizacao de dependencias com foco em seguranca.
+
+Evidencias executadas no fechamento:
+
+- build da aplicacao;
+- testes unitarios, property e integracao;
+- cobertura de testes;
+- auditoria de seguranca de dependencias de producao.
+
+Resultado esperado: base mais confiavel para evolucao do sistema, com menor risco de regressao e melhor capacidade de operacao/manutencao.
