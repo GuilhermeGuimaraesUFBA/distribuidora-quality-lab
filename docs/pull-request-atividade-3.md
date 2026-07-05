@@ -57,3 +57,91 @@ PASS test/unit/inventory/register-entry.use-case.coverage.spec.ts
 Test Suites: 8 passed, 8 total
 Tests:       65 passed, 65 total
 ```
+
+## Problema de Qualidade Atacado
+
+O problema principal atacado foi a baixa coesao do modulo de estoque, com regra de negocio distribuida em casos de uso e risco de divergencia entre fluxos de entrada e retirada.
+
+Em termos de qualidade de software, essa condicao gerava:
+
+- maior chance de regressao ao evoluir regras de saldo;
+- acoplamento excessivo entre aplicacao e dominio;
+- testes de regra de negocio mais caros de manter;
+- menor previsibilidade operacional em cenarios de erro.
+
+## Validacoes e Tratamento de Erro
+
+Para reforcar a robustez da entrega, o sistema ja executa validacoes em duas camadas:
+
+- validacao de entrada via `ValidationPipe` global com `whitelist`, `forbidNonWhitelisted` e `transform`;
+- validacao de regra de negocio no dominio, com rejeicao de estados invalidos (ex.: retirada sem saldo suficiente).
+
+O tratamento de erro padronizado ocorre via filtro global de excecoes, com resposta consistente (`statusCode`, `error`, `message`, `timestamp` e `details` quando aplicavel).
+
+## Evidencias de Seguranca
+
+Como acao de consolidacao para o trabalho final:
+
+- removemos bypass da auditoria de seguranca no CI (`npm audit` deixa de usar `|| true`);
+- aplicamos prioridade para vulnerabilidades criticas/altas em dependencias diretas:
+	- `minimist` atualizado para `1.2.8`;
+	- `lodash` atualizado para `4.17.21`;
+- mantivemos a verificacao de seguranca no pipeline como gate obrigatorio.
+
+## Logs, Rastreabilidade e Observabilidade
+
+Foram consolidadas evidencias de observabilidade:
+
+- logs estruturados JSON por request (metodo, rota, status e duracao);
+- endpoint de health (`/health`) para verificacao rapida de disponibilidade;
+- endpoint de metrics (`/metrics`) em formato compativel com scraping;
+- ativacao do tracing no bootstrap para rastreabilidade de execucao.
+
+## Melhoria de Operacao
+
+No pipeline CI/CD, os gates foram endurecidos para evitar aprovacao superficial:
+
+- lint passou a executar em modo verificacao (`lint:check`), sem autofix silencioso;
+- cobertura minima agora falha o job quando abaixo do limiar;
+- auditoria de seguranca sem bypass.
+
+Essas mudancas reduzem risco operacional e aumentam confiabilidade do processo de entrega.
+
+## Reducao de Divida Tecnica
+
+A centralizacao das invariantes no agregado `ProductInventory` reduz duplicacao de regra, facilita evolucao segura e melhora a clareza arquitetural entre dominio, aplicacao e infraestrutura.
+
+## Evidencias de Execucao (Consolidado)
+
+Comandos executados localmente para comprovacao:
+
+```bash
+npm run build
+npm run lint:check
+npm run test:unit
+npm run test:property
+npm run test:integration
+npm run test:coverage
+npm audit --omit=dev --audit-level=high
+```
+
+Resumo esperado para a entrega:
+
+- build bem-sucedido;
+- suites de testes unitarios, property e integracao aprovadas;
+- cobertura acima do minimo definido no pipeline;
+- auditoria sem vulnerabilidades criticas/altas nas dependencias de producao.
+
+## Texto sugerido para descricao do Pull Request
+
+- O que foi melhorado:
+	- refatoracao do modulo de estoque para concentrar regra no agregado de dominio;
+	- endurecimento dos gates de qualidade no CI;
+	- ativacao de tracing no bootstrap;
+	- atualizacao de dependencias com foco em seguranca.
+- Problema de qualidade atacado:
+	- anemic domain model e regra de negocio espalhada, com impacto em manutencao e risco de inconsistencia.
+- Testes/evidencias:
+	- execucao de build, lint, testes (unit/property/integration/coverage) e auditoria de seguranca.
+- Impacto esperado:
+	- maior confiabilidade para evolucao, operacao e manutencao do sistema.
