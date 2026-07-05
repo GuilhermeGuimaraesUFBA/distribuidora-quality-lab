@@ -29,7 +29,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
-        continue-on-error: true
 
       - name: Test
         run: npm run test:coverage
@@ -38,20 +37,22 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          COVERAGE=$(cat coverage/coverage-summary.json | node -e "
-            const data = require('fs').readFileSync('/dev/stdin', 'utf8');
-            const json = JSON.parse(data);
-            console.log(json.total.lines.pct);
-          ")
-          echo "Line coverage: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
-            echo "::warning::Coverage ${COVERAGE}% is below 70% threshold"
-          fi
+          node -e "
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+            const lines = Number(summary?.total?.lines?.pct ?? 0);
+            const threshold = 70;
+            console.log('Line coverage:', lines + '%');
+            if (lines < threshold) {
+              console.error('Coverage below threshold:', lines + '% < ' + threshold + '%');
+              process.exit(1);
+            }
+          "
 
       - name: Security scan
         run: |
           echo "Running security audit..."
-          npm audit --audit-level=high || true
+          npm audit --omit=dev --audit-level=high
           echo "Security scan completed"
 
       - name: Generate SBOM
